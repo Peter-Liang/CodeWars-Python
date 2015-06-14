@@ -6,17 +6,17 @@ http://www.codewars.com/kata/54eb33e5bc1a25440d000891/train/python
 """
 
 
-def decompose(n, goal=None):
-    if not goal:
-        goal = n ** 2
-    for i in range(n - 1, 0, -1):
-        if goal > i ** 2:
-            for j in range(i - 1, 0, -1):
-                if i ** 2 + j ** 2 == goal:
-                    return [j, i]
-                result = decompose(j, goal - (i ** 2))
-                if result:
-                    result.append(i)
-                    sorted(result)
+def decompose(n):
+    goal = 0
+    result = [n]
+    while result:
+        current = result.pop()
+        goal += current ** 2
+        for i in range(current - 1, 0, -1):
+            if goal - (i ** 2) >= 0:
+                goal -= i ** 2
+                result.append(i)
+                if goal == 0:
+                    result.sort()
                     return result
     return None
