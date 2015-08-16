@@ -26,21 +26,6 @@ def toAscii85(data):
     return '<~' + result + '~>'
 
 
-def decode_from_ascii85(encoded_str):
-    if encoded_str == 'z':
-        return '\0' * 4
-    padding = 5 - len(encoded_str)
-    if padding > 0:
-        encoded_str += 'u' * padding
-    int_sum = 0
-    for i, c in enumerate(encoded_str):
-        int_sum += (ord(c) - 33) * (85 ** (4 - i))
-    byte_result = format(int_sum, '08x')
-    if padding > 0:
-        byte_result = byte_result[:-(padding * 2)]
-    return ''.join([chr(int(byte_result[i:i + 2], 16)) for i in range(0, len(byte_result), 2)])
-
-
 def fromAscii85(data):
     result = ''
     illegal_character = ['\n', ' ', '\0', '\t']
@@ -50,13 +35,18 @@ def fromAscii85(data):
 
     index = 0
     while index < len(data):
-        if data[index] != 'z':
-            if index + 5 < len(data):
-                result += decode_from_ascii85(data[index:index + 5])
-            else:
-                result += decode_from_ascii85(data[index:])
-            index += 5
-        else:
-            result += decode_from_ascii85(data[index:index + 1])
+        if data[index] == 'z':
+            result += '\0' * 4
             index += 1
+        else:
+            padding = max(index + 5 - len(data), 0)
+            encoded_block = data[index:index + 5] if padding == 0 else data[index:] + 'u' * padding
+            encoded_int = 0
+            for i, c in enumerate(encoded_block[::-1]):
+                encoded_int += (ord(c) - 33) * (85 ** i)
+            encoded_byte = format(encoded_int, '08x')
+            if padding > 0:
+                encoded_byte = encoded_byte[:-padding * 2]
+            index += 5
+            result += ''.join([chr(int(encoded_byte[i:i + 2], 16)) for i in range(0, len(encoded_byte), 2)])
     return result
