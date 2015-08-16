@@ -1,5 +1,3 @@
-from binascii import b2a_hex
-
 """
 ASCII85 Encoding & Decoding
 http://www.codewars.com/kata/5277dc3ff4bfbd9a36000c1c/train/python
@@ -10,33 +8,22 @@ def toAscii85(data):
     hex_str = ''
     result = ''
     for c in data:
-        # hex_str += '{:02x}'.format(ord(c))
         hex_str += format(ord(c), '02x')
-        if len(hex_str) == 8:
-            result += encode_to_ascii85(hex_str)
-            hex_str = ''
-
-    if len(hex_str) > 0:
-        result += encode_to_ascii85(hex_str)
-    return '<~' + result + '~>'
-
-
-def encode_to_ascii85(hex_str):
-    if hex_str == '0' * 8:
-        return 'z'
-    result = ''
-    padding = (8 - len(hex_str)) / 2
-    if padding > 0:
-        hex_str += '00' * padding
-    intresult = int(hex_str, 16)
-
-    for _ in range(5):
-        intresult, encoded_char = divmod(intresult, 85)
-        if padding > 0:
-            padding -= 1
+    index = 0
+    while index < len(hex_str):
+        padding = max(((index + 8) - len(hex_str)) / 2, 0)
+        encode_block = hex_str[index:index + 8] if padding == 0 else hex_str[index:] + '00' * padding
+        if encode_block == '0' * 8 and padding == 0:
+            result += 'z'
         else:
-            result = chr(encoded_char + 33) + result
-    return result
+            encode_block_int = int(encode_block, 16) / (85 ** padding)
+            encode_block_result = ''
+            for _ in range(5 - padding):
+                encode_block_int, remainder = divmod(encode_block_int, 85)
+                encode_block_result = chr(remainder + 33) + encode_block_result
+            result += encode_block_result
+        index += 8
+    return '<~' + result + '~>'
 
 
 def decode_from_ascii85(encoded_str):
@@ -49,10 +36,8 @@ def decode_from_ascii85(encoded_str):
     for i, c in enumerate(encoded_str):
         int_sum += (ord(c) - 33) * (85 ** (4 - i))
     byte_result = format(int_sum, '08x')
-    # print('byte_result: %s' % byte_result)
     if padding > 0:
         byte_result = byte_result[:-(padding * 2)]
-    # print('byte_result: %s' % byte_result)
     return ''.join([chr(int(byte_result[i:i + 2], 16)) for i in range(0, len(byte_result), 2)])
 
 
@@ -74,8 +59,4 @@ def fromAscii85(data):
         else:
             result += decode_from_ascii85(data[index:index + 1])
             index += 1
-    # print('result: %s' % result)
-    # print('len: %d' % len(result))
-    if result == '\0':
-        return '\x00'
     return result
