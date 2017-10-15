@@ -80,8 +80,7 @@ def get_element_name(element):
     return ' '.join([s.upper() for s in acronyms])
 
 
-print([][1:])
-# print('index.html'[0:6] == 'index.')
+
 assert generate_bc("mysite.com/pictures/holidays.html",
                    " : ") == '<a href="/">HOME</a> : <a href="/pictures/">PICTURES</a> : <span class="active">HOLIDAYS</span>'
 assert generate_bc("www.codewars.com/users/GiacomoSorbi?ref=CodeWars",
